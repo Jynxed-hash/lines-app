@@ -1,67 +1,111 @@
-import { StyleSheet } from 'react-native';
-import { SafeAreaView } from 'react-native-safe-area-context';
+import { useState } from 'react';
+import { StyleSheet, View } from 'react-native';
 
+import { NightButton } from '@/components/night-button';
+import { NightInput } from '@/components/night-input';
+import { PlaceNumber } from '@/components/place-number';
+import { ScreenScroll } from '@/components/screen-scroll';
 import { ThemedText } from '@/components/themed-text';
-import { ThemedView } from '@/components/themed-view';
-import { BottomTabInset, MaxContentWidth, Spacing } from '@/constants/theme';
-import { SEED_VENUES } from '@/lib/seed-venues';
-import { useNight } from '@/state/night-store';
+import { Spacing } from '@/constants/theme';
+import { useNight } from '@/state/night-session';
 
 export default function QueueScreen() {
-  const { myEntry, positionFor } = useNight();
-  const venue = SEED_VENUES.find((item) => item.id === myEntry?.venueId);
+  const { myEntry, positionFor, venues, joinCrew, leaveLine } = useNight();
+  const venue = venues.find((item) => item.id === myEntry?.venueId);
   const position = myEntry ? positionFor(myEntry) : null;
+  const [inviteInput, setInviteInput] = useState('');
+  const [joinError, setJoinError] = useState<string | null>(null);
+  const inActiveLine = myEntry != null && (myEntry.status === 'waiting' || myEntry.status === 'called');
+  const called = myEntry?.status === 'called';
+  const close = position === 3 && !called;
+
+  const onJoinCrew = () => {
+    const ok = joinCrew(inviteInput);
+    if (!ok) {
+      setJoinError('No party with that code.');
+      return;
+    }
+    setJoinError(null);
+    setInviteInput('');
+  };
 
   return (
-    <ThemedView style={styles.wrap}>
-      <SafeAreaView style={styles.safe}>
-        <ThemedText type="subtitle">Queue</ThemedText>
-        {!myEntry || !venue ? (
+    <ScreenScroll>
+      <ThemedText type="kicker" themeColor="accent">
+        Queue
+      </ThemedText>
+      {!myEntry || !venue ? (
+        <View style={styles.empty}>
+          <PlaceNumber value="—" tone="default" />
+          <ThemedText type="title">Not in line</ThemedText>
           <ThemedText themeColor="textSecondary">
-            You’re not in a line yet. Open Tonight, name the crew, tap Get in line. Bar Atlas
-            already has two parties ahead so you should land 3rd.
+            Open Tonight, name the crew, tap Get in line. Bar Atlas already has two parties ahead so
+            you should land 3rd.
           </ThemedText>
-        ) : (
-          <ThemedView type="backgroundElement" style={styles.card}>
-            <ThemedText type="small" themeColor="textSecondary">
-              {venue.name}
+          <ThemedText type="kicker" themeColor="textSecondary" style={styles.joinKicker}>
+            Join a crew
+          </ThemedText>
+          <ThemedText type="small" themeColor="textSecondary">
+            Same ticket as friends. Paste the invite code from their Queue screen.
+          </ThemedText>
+          <NightInput
+            value={inviteInput}
+            onChangeText={(value) => {
+              setInviteInput(value);
+              setJoinError(null);
+            }}
+            placeholder="ATLA-DEMO"
+            autoCapitalize="characters"
+            autoCorrect={false}
+            autoComplete="off"
+            onSubmitEditing={onJoinCrew}
+          />
+          {joinError ? (
+            <ThemedText type="small" themeColor="danger">
+              {joinError}
             </ThemedText>
-            <ThemedText type="title" style={styles.position}>
-              {position ?? '—'}
+          ) : null}
+          <NightButton label="Join crew" onPress={onJoinCrew} />
+        </View>
+      ) : (
+        <View style={styles.poster}>
+          <ThemedText type="kicker" themeColor="textSecondary">
+            {venue.name}
+          </ThemedText>
+          <PlaceNumber
+            value={called ? 'NOW' : (position ?? '—')}
+            tone={called ? 'now' : close ? 'close' : 'default'}
+          />
+          <ThemedText type="venue">
+            {called
+              ? 'Walk up. Don’t wait on the sidewalk.'
+              : close
+                ? 'You are 3rd. Stay nearby.'
+                : `${myEntry.partyName} · party of ${myEntry.partySize}`}
+          </ThemedText>
+          <ThemedText type="code" themeColor="textSecondary">
+            {myEntry.inviteCode} · one ticket
+          </ThemedText>
+          {myEntry.status === 'admitted' ? (
+            <ThemedText type="smallBold">Admitted. Have a good night.</ThemedText>
+          ) : null}
+          {myEntry.status === 'no_show' ? (
+            <ThemedText type="smallBold" themeColor="danger">
+              Marked no-show. Rejoin from Tonight.
             </ThemedText>
-            <ThemedText>
-              {myEntry.status === 'called'
-                ? 'You’re next — walk up. Don’t wait on the sidewalk.'
-                : position === 3
-                  ? 'You are 3rd in queue. Stay nearby.'
-                  : `${myEntry.partyName} · party of ${myEntry.partySize}`}
-            </ThemedText>
-            <ThemedText type="small" themeColor="textSecondary">
-              Invite code {myEntry.inviteCode} · one ticket for the crew
-            </ThemedText>
-            {myEntry.status === 'admitted' ? (
-              <ThemedText type="smallBold">Admitted. Have a good night.</ThemedText>
-            ) : null}
-            {myEntry.status === 'no_show' ? (
-              <ThemedText type="smallBold">Marked no-show. Rejoin from Tonight.</ThemedText>
-            ) : null}
-          </ThemedView>
-        )}
-      </SafeAreaView>
-    </ThemedView>
+          ) : null}
+          {myEntry.status === 'left' ? (
+            <ThemedText type="smallBold">You left the line.</ThemedText>
+          ) : null}
+          {inActiveLine ? <NightButton label="Leave line" variant="ghost" onPress={leaveLine} /> : null}
+        </View>
+      )}
+    </ScreenScroll>
   );
 }
 
 const styles = StyleSheet.create({
-  wrap: { flex: 1, alignItems: 'center' },
-  safe: {
-    flex: 1,
-    width: '100%',
-    maxWidth: MaxContentWidth,
-    paddingHorizontal: Spacing.four,
-    paddingBottom: BottomTabInset + Spacing.three,
-    gap: Spacing.three,
-  },
-  card: { padding: Spacing.four, borderRadius: Spacing.three, gap: Spacing.two },
-  position: { fontSize: 72, lineHeight: 80 },
+  empty: { gap: Spacing.three },
+  poster: { gap: Spacing.three },
+  joinKicker: { marginTop: Spacing.two },
 });

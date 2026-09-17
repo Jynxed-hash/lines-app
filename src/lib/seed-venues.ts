@@ -55,3 +55,14 @@ export const SEED_VENUES: Venue[] = [
     deals: [],
   },
 ];
+
+/**
+ * Demo door gate only. These values ship in the client bundle and are visible
+ * to anyone who inspects the app. Not authentication. Real door access belongs
+ * on a server-checked PIN / door_staff row later.
+ */
+export const SEED_DOOR_PINS: Record<string, string> = {
+  atlas: '4821',
+  harbor: '7390',
+  kiln: '1155',
+};

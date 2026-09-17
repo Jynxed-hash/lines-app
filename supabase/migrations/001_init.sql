@@ -31,7 +31,7 @@ create table if not exists queue_entries (
   venue_id text not null references venues (id) on delete cascade,
   party_id uuid not null references parties (id) on delete cascade,
   status text not null default 'waiting'
-    check (status in ('waiting', 'called', 'admitted', 'no_show')),
+    check (status in ('waiting', 'called', 'admitted', 'no_show', 'left')),
   joined_at timestamptz not null default now(),
   notified_third boolean not null default false,
   notified_next boolean not null default false

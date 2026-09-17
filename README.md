@@ -21,9 +21,9 @@ npx expo start
 
 Open in Expo Go, iOS simulator, Android emulator, or press `w` for web.
 
-**Tonight** — party name + size, filter by deals, get in line.  
-**Queue** — your place in line and invite code.  
-**Door** — Call next / Admit / No-show. Someone has to run this or the queue is fake.
+**Tonight** — party name + size, filter by deals, get in line. Wait is parties and people ahead, never minutes.  
+**Queue** — your place in line, invite code, join a crew, leave the line.  
+**Door** — unlock with a per-venue demo PIN, then Call next / Admit / No-show. Someone has to run this or the queue is fake.
 
 ## GitHub
 
