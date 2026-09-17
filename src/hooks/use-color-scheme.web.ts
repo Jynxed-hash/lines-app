@@ -2,7 +2,9 @@ import { useEffect, useState } from 'react';
 import { useColorScheme as useRNColorScheme } from 'react-native';
 
 /**
- * To support static rendering, this value needs to be re-calculated on the client side for web
+ * Nightlife default is dark so Tonight / Queue / Door share one canvas.
+ * Static web used to paint light, then client-hydrate to the OS scheme —
+ * Tonight stayed cream while Queue/Door went near-black.
  */
 export function useColorScheme() {
   const [hasHydrated, setHasHydrated] = useState(false);
@@ -13,9 +15,13 @@ export function useColorScheme() {
 
   const colorScheme = useRNColorScheme();
 
-  if (hasHydrated) {
-    return colorScheme;
+  if (!hasHydrated) {
+    return 'dark';
   }
 
-  return 'light';
+  if (colorScheme === 'light') {
+    return 'light';
+  }
+
+  return 'dark';
 }

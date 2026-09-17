@@ -6,14 +6,21 @@ import {
   TabTriggerSlotProps,
   TabListProps,
 } from 'expo-router/ui';
-import { SymbolView } from 'expo-symbols';
-import { Pressable, useColorScheme, View, StyleSheet } from 'react-native';
+import { Pressable, View, StyleSheet } from 'react-native';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import Animated, { Easing, useAnimatedStyle, useReducedMotion, useSharedValue, withTiming } from 'react-native-reanimated';
 
-import { ExternalLink } from './external-link';
 import { ThemedText } from './themed-text';
-import { ThemedView } from './themed-view';
+import { VectorIcon, type VectorIconName } from './vector-icon';
 
-import { Colors, MaxContentWidth, Spacing } from '@/constants/theme';
+import { IconSize, MaxContentWidth, Motion, Radius, Spacing, Touch } from '@/constants/theme';
+import { useTheme } from '@/hooks/use-theme';
+
+const TAB_ICONS: Record<string, VectorIconName> = {
+  Tonight: { ios: 'moon.stars.fill', android: 'nightlife', web: 'nightlife' },
+  Queue: { ios: 'person.3.fill', android: 'groups', web: 'groups' },
+  Door: { ios: 'lock.fill', android: 'lock', web: 'lock' },
+};
 
 export default function AppTabs() {
   return (
@@ -37,43 +44,64 @@ export default function AppTabs() {
 }
 
 export function TabButton({ children, isFocused, ...props }: TabTriggerSlotProps) {
+  const theme = useTheme();
+  const reduceMotion = useReducedMotion();
+  const progress = useSharedValue(0);
+  const label = typeof children === 'string' ? children : 'Tab';
+  const icon = TAB_ICONS[label];
+  const animatedStyle = useAnimatedStyle(() => ({
+    opacity: 1 - progress.value * 0.16,
+    transform: [{ scale: reduceMotion ? 1 : 1 - progress.value * (1 - Motion.pressScale) }],
+  }));
+
   return (
-    <Pressable {...props} style={({ pressed }) => pressed && styles.pressed}>
-      <ThemedView
-        type={isFocused ? 'backgroundSelected' : 'backgroundElement'}
-        style={styles.tabButtonView}>
-        <ThemedText type="small" themeColor={isFocused ? 'text' : 'textSecondary'}>
+    <Pressable
+      {...props}
+      accessibilityRole="button"
+      accessibilityLabel={label}
+      accessibilityState={{ selected: Boolean(isFocused) }}
+      onPressIn={(event) => {
+        progress.value = withTiming(1, { duration: Motion.pressIn, easing: Easing.out(Easing.cubic) });
+        props.onPressIn?.(event);
+      }}
+      onPressOut={(event) => {
+        progress.value = withTiming(0, { duration: Motion.pressOut, easing: Easing.out(Easing.cubic) });
+        props.onPressOut?.(event);
+      }}
+      style={styles.tabHit}>
+      <Animated.View
+        style={[
+          styles.tabButtonView,
+          {
+            backgroundColor: isFocused ? theme.backgroundSelected : 'transparent',
+            borderColor: isFocused ? theme.primary : 'transparent',
+          },
+          animatedStyle,
+        ]}>
+        {icon ? <VectorIcon name={icon} color={isFocused ? theme.primary : theme.textSecondary} size={IconSize.md} /> : null}
+        <ThemedText type="smallBold" themeColor={isFocused ? 'text' : 'textSecondary'}>
           {children}
         </ThemedText>
-      </ThemedView>
+      </Animated.View>
     </Pressable>
   );
 }
 
 export function CustomTabList(props: TabListProps) {
-  const scheme = useColorScheme();
-  const colors = Colors[scheme === 'unspecified' ? 'light' : scheme];
+  const theme = useTheme();
+  const insets = useSafeAreaInsets();
 
   return (
-    <View {...props} style={styles.tabListContainer}>
-      <ThemedView type="backgroundElement" style={styles.innerContainer}>
-        <ThemedText type="smallBold" style={styles.brandText}>
-          Lines
-        </ThemedText>
-
+    <View
+      {...props}
+      style={[styles.tabListContainer, { paddingBottom: Math.max(insets.bottom, Spacing.two) }]}>
+      <View
+        style={[
+          styles.innerContainer,
+          { backgroundColor: theme.backgroundElement, borderColor: theme.border },
+        ]}>
         {props.children}
-
-        <ExternalLink href="https://docs.expo.dev" asChild>
-          <Pressable style={styles.externalPressable}>
-            <ThemedText type="link">Docs</ThemedText>
-            <SymbolView
-              tintColor={colors.text}
-              name={{ ios: 'arrow.up.right.square', web: 'link' }}
-              size={12}
-            />
-          </Pressable>
-        </ExternalLink>
-      </ThemedView>
+      </View>
     </View>
   );
 }
@@ -81,38 +109,41 @@ export function CustomTabList(props: TabListProps) {
 const styles = StyleSheet.create({
   tabListContainer: {
     position: 'absolute',
+    bottom: 0,
     width: '100%',
-    padding: Spacing.three,
+    paddingHorizontal: Spacing.three,
+    paddingTop: Spacing.two,
     justifyContent: 'center',
     alignItems: 'center',
     flexDirection: 'row',
   },
   innerContainer: {
-    paddingVertical: Spacing.two,
-    paddingHorizontal: Spacing.five,
-    borderRadius: Spacing.five,
+    paddingVertical: Spacing.one,
+    paddingHorizontal: Spacing.two,
+    borderRadius: Radius.lg,
+    borderWidth: 1,
     flexDirection: 'row',
     alignItems: 'center',
+    justifyContent: 'space-between',
     flexGrow: 1,
     gap: Spacing.two,
     maxWidth: MaxContentWidth,
   },
-  brandText: {
-    marginRight: 'auto',
-  },
-  pressed: {
-    opacity: 0.7,
+  tabHit: {
+    flex: 1,
+    minHeight: Touch.min,
+    minWidth: Touch.min,
+    cursor: 'pointer',
   },
   tabButtonView: {
-    paddingVertical: Spacing.one,
-    paddingHorizontal: Spacing.three,
-    borderRadius: Spacing.three,
-  },
-  externalPressable: {
+    minHeight: Touch.min,
+    paddingVertical: Spacing.two,
+    paddingHorizontal: Spacing.two,
+    borderRadius: Radius.md,
+    borderWidth: 1,
     flexDirection: 'row',
-    justifyContent: 'center',
     alignItems: 'center',
+    justifyContent: 'center',
     gap: Spacing.one,
-    marginLeft: Spacing.three,
   },
 });
