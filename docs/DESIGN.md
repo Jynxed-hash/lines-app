@@ -79,7 +79,7 @@ All six agreed 2026-09-17.
 | Tonight (join + deals filter) | `src/app/index.tsx` |
 | Queue (place in line + invite code) | `src/app/queue.tsx` |
 | Door (Call next / Admit / No-show) | `src/app/door.tsx` |
-| In-memory night state | `src/state/night-store.tsx` |
+| In-memory night state | `src/state/night-session.tsx` + `src/state/queue-logic.ts` |
 | Local buzz at 3rd / next | `src/lib/notify.ts` |
 | Seed venues | `src/lib/seed-venues.ts` |
 | Backend stub | `supabase/migrations/001_init.sql` |

@@ -7,7 +7,7 @@ import { ThemedView } from '@/components/themed-view';
 import { BottomTabInset, MaxContentWidth, Spacing } from '@/constants/theme';
 import { useTheme } from '@/hooks/use-theme';
 import type { Venue } from '@/lib/seed-venues';
-import { useNight } from '@/state/night-store';
+import { useNight } from '@/state/night-session';
 
 export default function TonightScreen() {
   const theme = useTheme();
@@ -63,26 +63,38 @@ export default function TonightScreen() {
           <ThemedText type="smallBold">{dealFilter ? 'Showing bars with deals' : 'Filter by deals'}</ThemedText>
         </Pressable>
 
-        {visibleVenues.map((venue) => (
-          <VenueCard
-            key={venue.id}
-            venue={venue}
-            partiesAhead={waitForPartySize(venue.id, partySize).partiesAhead}
-            onJoin={() => joinLine({ venueId: venue.id, partyName, partySize })}
-          />
-        ))}
+        {visibleVenues.map((venue) => {
+          const wait = waitForPartySize(venue.id, partySize);
+          return (
+            <VenueCard
+              key={venue.id}
+              venue={venue}
+              partiesAhead={wait.partiesAhead}
+              peopleAhead={wait.peopleAhead}
+              onJoin={() => joinLine({ venueId: venue.id, partyName, partySize })}
+            />
+          );
+        })}
       </ThemedView>
     </ScrollView>
   );
 }
 
+function waitCopy(partiesAhead: number, peopleAhead: number) {
+  const parties = partiesAhead === 1 ? '1 party ahead' : `${partiesAhead} parties ahead`;
+  const people = peopleAhead === 1 ? '1 person' : `${peopleAhead} people`;
+  return `${parties} · ${people}`;
+}
+
 function VenueCard({
   venue,
   partiesAhead,
+  peopleAhead,
   onJoin,
 }: {
   venue: Venue;
   partiesAhead: number;
+  peopleAhead: number;
   onJoin: () => void;
 }) {
   const theme = useTheme();
@@ -93,7 +105,7 @@ function VenueCard({
         {venue.name} · {venue.neighborhood}
       </ThemedText>
       <ThemedText type="small" themeColor="textSecondary">
-        {venue.occupancy}/{venue.capacity} inside · {partiesAhead} parties ahead for your size
+        {venue.occupancy}/{venue.capacity} inside · {waitCopy(partiesAhead, peopleAhead)}
       </ThemedText>
       <ThemedText type="small">{venue.vibe}</ThemedText>
       {venue.deals.map((deal) => (
