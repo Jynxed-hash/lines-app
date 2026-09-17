@@ -1,0 +1,30 @@
+---
+description: GitHub pull/push/commit etiquette for Lines (lines-app)
+alwaysApply: true
+---
+
+# GitHub etiquette (Lines / lines-app)
+
+Remote is GitHub repo `lines-app` via `gh`. Do not add a Cursor `origin` remote.
+
+## Reviewer gate
+
+Before **every commit** and **every pull**, run `code-reviewer` and `security-reviewer` (or equivalent local review of the same diff). Do not commit or pull until they pass or findings are fixed. Do not skip for the initial commit.
+
+## Pull
+
+Review dirty work first. Commit (after reviewers) or stash. Then `git pull --rebase origin main`. Never force-pull. Never `--no-verify` unless the user explicitly asks.
+
+## Push
+
+Commit first (reviewer gate already passed). First push: `git push -u origin HEAD`. Never force-push `main`/`master`. Never `--no-verify` unless the user explicitly asks.
+
+## Branches / commits / PRs
+
+- Default branch: `main`. Features: `feat/…`, fixes: `fix/…`.
+- PRs into `main` with `gh pr create`. Conventional messages focused on **why**. HEREDOC only. No `git *-i`.
+- Never change `git config`. No destructive git unless the user asks. Amend only if the user asked or a hook rewrote a commit you just made that is not pushed. If a hook rejected the commit, make a new one.
+
+## Do not commit
+
+`node_modules/`, `.expo/`, `.env`, `.env*.local`, keys (`*.pem`, `*.p8`, `*.jks`, `*.p12`, `*.key`), `/ios`, `/android`. `.env.example` with empty keys is OK.
