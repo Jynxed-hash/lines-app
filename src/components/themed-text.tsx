@@ -1,20 +1,32 @@
 import { Platform, StyleSheet, Text, type TextProps } from 'react-native';
 
-import { Fonts, ThemeColor } from '@/constants/theme';
+import { Fonts, ThemeColor, Type } from '@/constants/theme';
 import { useTheme } from '@/hooks/use-theme';
 
 export type ThemedTextProps = TextProps & {
-  type?: 'default' | 'title' | 'small' | 'smallBold' | 'subtitle' | 'link' | 'linkPrimary' | 'code';
+  type?:
+    | 'default'
+    | 'title'
+    | 'small'
+    | 'smallBold'
+    | 'subtitle'
+    | 'link'
+    | 'linkPrimary'
+    | 'code'
+    | 'kicker'
+    | 'venue'
+    | 'wait';
   themeColor?: ThemeColor;
 };
 
 export function ThemedText({ style, type = 'default', themeColor, ...rest }: ThemedTextProps) {
   const theme = useTheme();
+  const color = themeColor ? theme[themeColor] : type === 'linkPrimary' ? theme.accent : theme.text;
 
   return (
     <Text
       style={[
-        { color: theme[themeColor ?? 'text'] },
+        { color, fontFamily: Fonts.sans },
         type === 'default' && styles.default,
         type === 'title' && styles.title,
         type === 'small' && styles.small,
@@ -23,6 +35,9 @@ export function ThemedText({ style, type = 'default', themeColor, ...rest }: The
         type === 'link' && styles.link,
         type === 'linkPrimary' && styles.linkPrimary,
         type === 'code' && styles.code,
+        type === 'kicker' && styles.kicker,
+        type === 'venue' && styles.venue,
+        type === 'wait' && styles.wait,
         style,
       ]}
       {...rest}
@@ -32,42 +47,53 @@ export function ThemedText({ style, type = 'default', themeColor, ...rest }: The
 
 const styles = StyleSheet.create({
   small: {
-    fontSize: 14,
-    lineHeight: 20,
-    fontWeight: 500,
+    ...Type.label,
+    fontFamily: Fonts.sans,
+    fontWeight: '400',
   },
   smallBold: {
-    fontSize: 14,
-    lineHeight: 20,
-    fontWeight: 700,
+    ...Type.label,
+    fontFamily: Fonts.sansSemiBold,
   },
   default: {
-    fontSize: 16,
-    lineHeight: 24,
-    fontWeight: 500,
+    ...Type.body,
+    fontFamily: Fonts.sans,
   },
   title: {
-    fontSize: 48,
-    fontWeight: 600,
-    lineHeight: 52,
+    ...Type.screenTitle,
+    fontFamily: Fonts.serif,
   },
   subtitle: {
-    fontSize: 32,
-    lineHeight: 44,
-    fontWeight: 600,
+    ...Type.screenTitle,
+    fontFamily: Fonts.serif,
   },
   link: {
-    lineHeight: 30,
     fontSize: 14,
+    lineHeight: 20,
+    fontFamily: Fonts.sansSemiBold,
   },
   linkPrimary: {
-    lineHeight: 30,
     fontSize: 14,
-    color: '#3c87f7',
+    lineHeight: 20,
+    fontFamily: Fonts.sansSemiBold,
   },
   code: {
     fontFamily: Fonts.mono,
-    fontWeight: Platform.select({ android: 700 }) ?? 500,
-    fontSize: 12,
+    fontWeight: Platform.select({ android: '700' }) ?? '500',
+    fontSize: 13,
+    letterSpacing: 0.6,
+  },
+  kicker: {
+    ...Type.kicker,
+    fontFamily: Fonts.sansSemiBold,
+    textTransform: 'uppercase',
+  },
+  venue: {
+    ...Type.venue,
+    fontFamily: Fonts.sansSemiBold,
+  },
+  wait: {
+    ...Type.wait,
+    fontFamily: Fonts.number,
   },
 });
