@@ -3,12 +3,36 @@
  * https://docs.expo.dev/guides/color-schemes/
  */
 
-import { Colors } from '@/constants/theme';
+import { Platform } from 'react-native';
+
+import { Colors, GlassTokens, WebColors, WebGlassTokens } from '@/constants/theme';
 import { useColorScheme } from '@/hooks/use-color-scheme';
 
-export function useTheme() {
+export function useResolvedScheme(): 'light' | 'dark' {
   const scheme = useColorScheme();
-  const theme = scheme === 'unspecified' ? 'light' : scheme;
+  return scheme === 'dark' ? 'dark' : 'light';
+}
 
-  return Colors[theme];
+export function useTheme() {
+  const scheme = useResolvedScheme();
+
+  if (Platform.OS === 'web') {
+    return WebColors;
+  }
+
+  return Colors[scheme];
+}
+
+export function useGlassTokens() {
+  const scheme = useResolvedScheme();
+
+  if (Platform.OS === 'web') {
+    return WebGlassTokens;
+  }
+
+  return GlassTokens[scheme];
+}
+
+export function usePalette() {
+  return Colors[useResolvedScheme()];
 }

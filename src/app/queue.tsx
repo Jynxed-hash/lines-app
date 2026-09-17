@@ -1,16 +1,15 @@
 import { useState } from 'react';
-import { Pressable, ScrollView, StyleSheet, TextInput } from 'react-native';
-import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import { Pressable, StyleSheet, TextInput, View } from 'react-native';
 
+import { GlassButton, GlassFamily, GlassSurface } from '@/components/glass';
+import { ScreenScroll } from '@/components/screen-scroll';
 import { ThemedText } from '@/components/themed-text';
-import { ThemedView } from '@/components/themed-view';
-import { BottomTabInset, MaxContentWidth, Spacing } from '@/constants/theme';
+import { HitTarget, Spacing } from '@/constants/theme';
 import { useTheme } from '@/hooks/use-theme';
 import { useNight } from '@/state/night-session';
 
 export default function QueueScreen() {
   const theme = useTheme();
-  const insets = useSafeAreaInsets();
   const { myEntry, positionFor, venues, joinCrew, leaveLine } = useNight();
   const venue = venues.find((item) => item.id === myEntry?.venueId);
   const position = myEntry ? positionFor(myEntry) : null;
@@ -29,57 +28,44 @@ export default function QueueScreen() {
   };
 
   return (
-    <ScrollView
-      style={[styles.scroll, { backgroundColor: theme.background }]}
-      contentContainerStyle={[
-        styles.content,
-        {
-          paddingTop: insets.top + Spacing.three,
-          paddingBottom: insets.bottom + BottomTabInset + Spacing.four,
-        },
-      ]}
-      keyboardShouldPersistTaps="handled">
-      <ThemedView style={styles.page}>
-        <ThemedText type="subtitle">Queue</ThemedText>
-        {!myEntry || !venue ? (
-          <ThemedView style={styles.empty}>
-            <ThemedText themeColor="textSecondary">
-              You’re not in a line yet. Open Tonight, name the crew, tap Get in line. Bar Atlas
-              already has two parties ahead so you should land 3rd.
-            </ThemedText>
-            <ThemedText type="smallBold">Join a crew</ThemedText>
+    <ScreenScroll keyboardShouldPersistTaps="handled">
+      <ThemedText type="subtitle">Queue</ThemedText>
+      {!myEntry || !venue ? (
+        <View style={styles.empty}>
+          <ThemedText themeColor="textSecondary">
+            You’re not in a line yet. Open Tonight, name the crew, tap Get in line. Bar Atlas
+            already has two parties ahead so you should land 3rd.
+          </ThemedText>
+          <ThemedText type="smallBold">Join a crew</ThemedText>
+          <ThemedText type="small" themeColor="textSecondary">
+            Same ticket as friends. Paste the invite code from their Queue screen.
+          </ThemedText>
+          <TextInput
+            value={inviteInput}
+            onChangeText={(value) => {
+              setInviteInput(value);
+              setJoinError(null);
+            }}
+            placeholder="ATLA-DEMO"
+            placeholderTextColor={theme.textSecondary}
+            autoCapitalize="characters"
+            autoCorrect={false}
+            autoComplete="off"
+            style={[styles.input, { color: theme.text, borderColor: theme.backgroundSelected }]}
+            onSubmitEditing={onJoinCrew}
+          />
+          {joinError ? (
             <ThemedText type="small" themeColor="textSecondary">
-              Same ticket as friends. Paste the invite code from their Queue screen.
+              {joinError}
             </ThemedText>
-            <TextInput
-              value={inviteInput}
-              onChangeText={(value) => {
-                setInviteInput(value);
-                setJoinError(null);
-              }}
-              placeholder="ATLA-DEMO"
-              placeholderTextColor={theme.textSecondary}
-              autoCapitalize="characters"
-              autoCorrect={false}
-              autoComplete="off"
-              style={[styles.input, { color: theme.text, borderColor: theme.backgroundSelected }]}
-              onSubmitEditing={onJoinCrew}
-            />
-            {joinError ? (
-              <ThemedText type="small" themeColor="textSecondary">
-                {joinError}
-              </ThemedText>
-            ) : null}
-            <Pressable
-              onPress={onJoinCrew}
-              style={[styles.button, { backgroundColor: theme.text }]}>
-              <ThemedText type="smallBold" style={{ color: theme.background }}>
-                Join crew
-              </ThemedText>
-            </Pressable>
-          </ThemedView>
-        ) : (
-          <ThemedView type="backgroundElement" style={styles.card}>
+          ) : null}
+          <GlassFamily>
+            <GlassButton label="Join crew" onPress={onJoinCrew} />
+          </GlassFamily>
+        </View>
+      ) : (
+        <GlassFamily>
+          <GlassSurface style={styles.card}>
             <ThemedText type="small" themeColor="textSecondary">
               {venue.name}
             </ThemedText>
@@ -107,42 +93,35 @@ export default function QueueScreen() {
             ) : null}
             {inActiveLine ? (
               <Pressable
+                accessibilityRole="button"
                 onPress={leaveLine}
                 style={[styles.leave, { backgroundColor: theme.backgroundSelected }]}>
                 <ThemedText type="smallBold">Leave line</ThemedText>
               </Pressable>
             ) : null}
-          </ThemedView>
-        )}
-      </ThemedView>
-    </ScrollView>
+          </GlassSurface>
+        </GlassFamily>
+      )}
+    </ScreenScroll>
   );
 }
 
 const styles = StyleSheet.create({
-  scroll: { flex: 1 },
-  content: { alignItems: 'center', paddingHorizontal: Spacing.three },
-  page: { width: '100%', maxWidth: MaxContentWidth, gap: Spacing.three },
   empty: { gap: Spacing.two },
-  card: { padding: Spacing.four, borderRadius: Spacing.three, gap: Spacing.two },
+  card: { padding: Spacing.four, gap: Spacing.two },
   position: { fontSize: 72, lineHeight: 80 },
   input: {
     borderWidth: 1,
     borderRadius: Spacing.two,
     paddingHorizontal: Spacing.two,
-    paddingVertical: Spacing.two,
+    minHeight: HitTarget,
     fontSize: 16,
-  },
-  button: {
-    alignSelf: 'flex-start',
-    paddingHorizontal: Spacing.three,
-    paddingVertical: Spacing.two,
-    borderRadius: Spacing.five,
   },
   leave: {
     alignSelf: 'flex-start',
+    minHeight: HitTarget,
     paddingHorizontal: Spacing.three,
-    paddingVertical: Spacing.two,
+    justifyContent: 'center',
     borderRadius: Spacing.five,
     marginTop: Spacing.one,
   },

@@ -1,68 +1,67 @@
 import { useState } from 'react';
-import { Pressable, ScrollView, StyleSheet, TextInput } from 'react-native';
-import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import { Pressable, StyleSheet, TextInput, View } from 'react-native';
 
+import { GlassButton, GlassFamily, GlassSurface } from '@/components/glass';
+import { ScreenScroll } from '@/components/screen-scroll';
 import { ThemedText } from '@/components/themed-text';
-import { ThemedView } from '@/components/themed-view';
-import { BottomTabInset, MaxContentWidth, Spacing } from '@/constants/theme';
+import { HitTarget, Spacing } from '@/constants/theme';
 import { useTheme } from '@/hooks/use-theme';
 import type { Venue } from '@/lib/seed-venues';
 import { useNight } from '@/state/night-session';
 
 export default function TonightScreen() {
   const theme = useTheme();
-  const insets = useSafeAreaInsets();
   const { visibleVenues, dealFilter, setDealFilter, waitForPartySize, joinLine } = useNight();
   const [partyName, setPartyName] = useState('Crew');
   const [partySize, setPartySize] = useState(4);
 
   return (
-    <ScrollView
-      style={[styles.scroll, { backgroundColor: theme.background }]}
-      contentContainerStyle={[
-        styles.content,
-        {
-          paddingTop: insets.top + Spacing.three,
-          paddingBottom: insets.bottom + BottomTabInset + Spacing.four,
-        },
-      ]}>
-      <ThemedView style={styles.page}>
-        <ThemedText type="subtitle">Lines</ThemedText>
-        <ThemedText themeColor="textSecondary">
-          Join a virtual line as a party. Skip the 50-minute sidewalk.
-        </ThemedText>
+    <ScreenScroll>
+      <ThemedText type="subtitle">Lines</ThemedText>
+      <ThemedText themeColor="textSecondary">
+        Join a virtual line as a party. Skip the 50-minute sidewalk.
+      </ThemedText>
 
-        <ThemedView type="backgroundElement" style={styles.partyBox}>
-          <ThemedText type="smallBold">Your party</ThemedText>
-          <TextInput
-            value={partyName}
-            onChangeText={setPartyName}
-            placeholder="Party name"
-            placeholderTextColor={theme.textSecondary}
-            autoCapitalize="words"
-            style={[styles.input, { color: theme.text, borderColor: theme.backgroundSelected }]}
-          />
-          <ThemedView style={styles.sizeRow}>
-            <Pressable
-              onPress={() => setPartySize((size) => Math.max(1, size - 1))}
-              style={[styles.step, { backgroundColor: theme.backgroundSelected }]}>
-              <ThemedText type="smallBold">−</ThemedText>
-            </Pressable>
-            <ThemedText>{partySize} people</ThemedText>
-            <Pressable
-              onPress={() => setPartySize((size) => Math.min(16, size + 1))}
-              style={[styles.step, { backgroundColor: theme.backgroundSelected }]}>
-              <ThemedText type="smallBold">+</ThemedText>
-            </Pressable>
-          </ThemedView>
-        </ThemedView>
+      <View style={[styles.partyBox, { backgroundColor: theme.backgroundElement }]}>
+        <ThemedText type="smallBold">Your party</ThemedText>
+        <TextInput
+          value={partyName}
+          onChangeText={setPartyName}
+          placeholder="Party name"
+          placeholderTextColor={theme.textSecondary}
+          autoCapitalize="words"
+          style={[styles.input, { color: theme.text, borderColor: theme.backgroundSelected }]}
+        />
+        <View style={styles.sizeRow}>
+          <Pressable
+            accessibilityRole="button"
+            accessibilityLabel="Decrease party size"
+            onPress={() => setPartySize((size) => Math.max(1, size - 1))}
+            style={[styles.step, { backgroundColor: theme.backgroundSelected }]}>
+            <ThemedText type="smallBold">−</ThemedText>
+          </Pressable>
+          <ThemedText>{partySize} people</ThemedText>
+          <Pressable
+            accessibilityRole="button"
+            accessibilityLabel="Increase party size"
+            onPress={() => setPartySize((size) => Math.min(16, size + 1))}
+            style={[styles.step, { backgroundColor: theme.backgroundSelected }]}>
+            <ThemedText type="smallBold">+</ThemedText>
+          </Pressable>
+        </View>
+      </View>
 
-        <Pressable
-          onPress={() => setDealFilter(!dealFilter)}
-          style={[styles.filter, { backgroundColor: dealFilter ? theme.backgroundSelected : theme.backgroundElement }]}>
-          <ThemedText type="smallBold">{dealFilter ? 'Showing bars with deals' : 'Filter by deals'}</ThemedText>
-        </Pressable>
+      <Pressable
+        accessibilityRole="button"
+        onPress={() => setDealFilter(!dealFilter)}
+        style={[
+          styles.filter,
+          { backgroundColor: dealFilter ? theme.backgroundSelected : theme.backgroundElement },
+        ]}>
+        <ThemedText type="smallBold">{dealFilter ? 'Showing bars with deals' : 'Filter by deals'}</ThemedText>
+      </Pressable>
 
+      <GlassFamily style={styles.family}>
         {visibleVenues.map((venue) => {
           const wait = waitForPartySize(venue.id, partySize);
           return (
@@ -75,8 +74,8 @@ export default function TonightScreen() {
             />
           );
         })}
-      </ThemedView>
-    </ScrollView>
+      </GlassFamily>
+    </ScreenScroll>
   );
 }
 
@@ -100,7 +99,7 @@ function VenueCard({
   const theme = useTheme();
 
   return (
-    <ThemedView type="backgroundElement" style={styles.card}>
+    <GlassSurface style={styles.card}>
       <ThemedText type="smallBold">
         {venue.name} · {venue.neighborhood}
       </ThemedText>
@@ -109,38 +108,43 @@ function VenueCard({
       </ThemedText>
       <ThemedText type="small">{venue.vibe}</ThemedText>
       {venue.deals.map((deal) => (
-        <ThemedView key={deal.id} type="backgroundSelected" style={styles.deal}>
+        <View key={deal.id} style={[styles.deal, { backgroundColor: theme.backgroundSelected }]}>
           <ThemedText type="smallBold">{deal.title}</ThemedText>
           <ThemedText type="small" themeColor="textSecondary">
             {deal.detail}
           </ThemedText>
-        </ThemedView>
+        </View>
       ))}
-      <Pressable onPress={onJoin} style={[styles.join, { backgroundColor: theme.text }]}>
-        <ThemedText type="smallBold" style={{ color: theme.background }}>
-          Get in line
-        </ThemedText>
-      </Pressable>
-    </ThemedView>
+      <GlassButton nested label="Get in line" onPress={onJoin} />
+    </GlassSurface>
   );
 }
 
 const styles = StyleSheet.create({
-  scroll: { flex: 1 },
-  content: { alignItems: 'center', paddingHorizontal: Spacing.three },
-  page: { width: '100%', maxWidth: MaxContentWidth, gap: Spacing.three },
+  family: { gap: Spacing.three, width: '100%' },
   partyBox: { padding: Spacing.three, borderRadius: Spacing.three, gap: Spacing.two },
   input: {
     borderWidth: 1,
     borderRadius: Spacing.two,
     paddingHorizontal: Spacing.two,
-    paddingVertical: Spacing.two,
+    minHeight: HitTarget,
     fontSize: 16,
   },
   sizeRow: { flexDirection: 'row', alignItems: 'center', gap: Spacing.three },
-  step: { paddingHorizontal: Spacing.three, paddingVertical: Spacing.one, borderRadius: Spacing.two },
-  filter: { alignSelf: 'flex-start', paddingHorizontal: Spacing.three, paddingVertical: Spacing.two, borderRadius: Spacing.five },
-  card: { padding: Spacing.three, borderRadius: Spacing.three, gap: Spacing.two },
+  step: {
+    minWidth: HitTarget,
+    minHeight: HitTarget,
+    alignItems: 'center',
+    justifyContent: 'center',
+    borderRadius: Spacing.two,
+  },
+  filter: {
+    alignSelf: 'flex-start',
+    minHeight: HitTarget,
+    paddingHorizontal: Spacing.three,
+    justifyContent: 'center',
+    borderRadius: Spacing.five,
+  },
+  card: { padding: Spacing.three, gap: Spacing.two },
   deal: { padding: Spacing.two, borderRadius: Spacing.two, gap: Spacing.half },
-  join: { alignSelf: 'flex-start', paddingHorizontal: Spacing.three, paddingVertical: Spacing.two, borderRadius: Spacing.five },
 });

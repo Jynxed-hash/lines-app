@@ -1,4 +1,5 @@
 :root {
+  color-scheme: light dark;
   --font-display:
     Spline Sans, Inter, ui-sans-serif, system-ui, sans-serif, Apple Color Emoji, Segoe UI Emoji,
     Segoe UI Symbol, Noto Color Emoji;
@@ -6,4 +7,69 @@
     ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, Liberation Mono, Courier New, monospace;
   --font-rounded: 'SF Pro Rounded', 'Hiragino Maru Gothic ProN', Meiryo, 'MS PGothic', sans-serif;
   --font-serif: Georgia, 'Times New Roman', serif;
+
+  --lines-text: #1a1916;
+  --lines-bg: #e8e4dc;
+  --lines-element: #f3efe7;
+  --lines-selected: #ddd6ca;
+  --lines-text-secondary: #3f3c37;
+  --lines-glass-tint: rgba(255, 252, 247, 0.38);
+  --lines-glass-fill: rgba(255, 252, 247, 0.86);
+  --lines-glass-stroke: rgba(26, 25, 22, 0.14);
+  --lines-cta-tint: rgba(42, 40, 36, 0.55);
+  --lines-cta-fill: #2a2824;
+  --lines-cta-label: #f7f4ee;
+}
+
+@media (prefers-color-scheme: dark) {
+  :root {
+    --lines-text: #f4f2ee;
+    --lines-bg: #121114;
+    --lines-element: #1c1b1f;
+    --lines-selected: #2a292e;
+    --lines-text-secondary: #c9c4bb;
+    --lines-glass-tint: rgba(28, 26, 32, 0.42);
+    --lines-glass-fill: rgba(22, 20, 26, 0.86);
+    --lines-glass-stroke: rgba(244, 242, 238, 0.16);
+    --lines-cta-tint: rgba(244, 242, 238, 0.42);
+    --lines-cta-fill: #f4f2ee;
+    --lines-cta-label: #161418;
+  }
+}
+
+html,
+body,
+#root {
+  background-color: var(--lines-bg);
+  color: var(--lines-text);
+}
+
+.lines-glass {
+  background-color: var(--lines-glass-fill);
+  border: 1px solid var(--lines-glass-stroke);
+  backdrop-filter: blur(28px) saturate(1.6);
+  -webkit-backdrop-filter: blur(28px) saturate(1.6);
+}
+
+.lines-glass-cta {
+  background-color: var(--lines-cta-fill);
+  border: 1px solid var(--lines-glass-stroke);
+  backdrop-filter: blur(20px) saturate(1.4);
+  -webkit-backdrop-filter: blur(20px) saturate(1.4);
+}
+
+@media (prefers-reduced-transparency: reduce) {
+  .lines-glass,
+  .lines-glass-cta {
+    backdrop-filter: none;
+    -webkit-backdrop-filter: none;
+  }
+
+  .lines-glass {
+    background-color: var(--lines-element);
+  }
+
+  .lines-glass-cta {
+    background-color: var(--lines-cta-fill);
+  }
 }
